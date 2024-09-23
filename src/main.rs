@@ -69,7 +69,10 @@ fn main() {
   let tag_name = format!("{}-v{version}", language.to_branch_name());
 
   let commands = vec![
+    // NOTE: not very safe to add everything, might be great in the future to
+    // have this as a separate function depending on the language.
     vec!["add", "."],
+
     vec!["commit", "-m", &commit_message],
     vec!["tag", "-a", &tag_name, "-m", &tag_message],
     vec!["push", "origin", language.to_branch_name(), "--tags"],
