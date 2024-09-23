@@ -1,5 +1,5 @@
 use std::fmt;
-use git2::Repository;
+use crate::git;
 
 pub enum Language {
   Rust,
@@ -17,17 +17,31 @@ impl fmt::Display for Language {
   }
 }
 
-pub fn detect_language (repo: &Repository) -> Language {
-  let head = repo.head()
-    .expect("Failed to get HEAD reference");
-
-  let branch = head.shorthand()
-    .expect("Failed to get branch name from HEAD reference");
-
-  match branch {
-    "js" => Language::JS,
-    "rust" => Language::Rust,
-    "kotlin" => Language::Kotlin,
-    _ => panic!("Unknown branch, make sure to checkout to a valid branch."),
+impl Language {
+  pub fn from_branch_name (name: &str) -> Self {
+    match name {
+      "js" => Language::JS,
+      "rust" => Language::Rust,
+      "kotlin" => Language::Kotlin,
+      _ => panic!("Unknown branch, make sure to checkout to a valid branch."),
+    }
   }
+
+  pub fn to_branch_name (&self) -> &str {
+    match self {
+      Language::JS => "js",
+      Language::Rust => "rust",
+      Language::Kotlin => "kotlin",
+    }
+  }
+}
+
+pub fn detect_language () -> Language {
+  let output = git(&["rev-parse", "--abbrev-ref", "HEAD"])
+    .expect("Failed to get branch name.");
+
+  let branch_name = String::from_utf8_lossy(&output.stdout);
+  let branch_name = branch_name.trim();
+
+  Language::from_branch_name(branch_name)
 }
