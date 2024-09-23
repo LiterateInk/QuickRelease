@@ -20,8 +20,9 @@ cargo build --release
 sudo mv ./target/release/quick-release /usr/local/bin/ink-quick-release
 
 # Here, the command is `ink-quick-release`
-# In my .zshrc, I like to add an alias
-# alias `ink-qr="ink-quick-release"`
+# In my shell profile, I like to add an alias:
+#
+# alias ink-qr="ink-quick-release"
 ```
 
 Note that the `mv` step only works on Linux and macOS. You might have to manually copy the binary to the correct path on Windows or even add the path to the binary to your `PATH` environment variable.
