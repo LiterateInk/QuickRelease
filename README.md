@@ -24,6 +24,8 @@ sudo mv ./target/release/quick-release /usr/local/bin/ink-quick-release
 # alias `ink-qr="ink-quick-release"`
 ```
 
+Note that the `mv` step only works on Linux and macOS. You might have to manually copy the binary to the correct path on Windows or even add the path to the binary to your `PATH` environment variable.
+
 ## Usage
 
 Be in a LiterateInk repository, in an implementation branch (such as `js` or `kotlin`) and you can directly run the command.
@@ -35,3 +37,17 @@ ink-quick-release
 It'll ask you for the type of bump you want for the new version, and then it'll create a new commit and tag and push it to the implementation branch.
 
 It'll also redirect you to the GitHub page to create a new release with the tag, release name and the release notes - generated using a `git log`.
+
+
+## Uninstallation
+
+You can simply remove the binary and it'll be gone.
+It doesn't create any other files or directories, so you don't have to worry about that.
+
+```bash
+sudo rm /usr/local/bin/ink-quick-release
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
