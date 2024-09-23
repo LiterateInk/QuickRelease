@@ -23,7 +23,7 @@ const UNSUPPORTED_LANGUAGE: &str = "Unsupported language, make sure to checkout 
 
 fn main() {
   // Show a warning message, just in case.
-  println!("{}\n", "Welcome, please note that this tool is only intended to be used within the LiterateInk organisation, since it expects a specific repository structure and provides no way to configure any feature.".yellow());
+  println!("{}\n", "Welcome, please note that this tool is only intended to be used within the LiterateInk organization, since it expects a specific repository structure and provides no way to configure any feature.".yellow());
 
   //
   // Detect the language of the current implementation.
