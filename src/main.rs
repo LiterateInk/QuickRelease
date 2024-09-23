@@ -1,5 +1,7 @@
-use git2::Repository;
 use dialoguer::Select;
+
+mod git;
+use git::git;
 
 mod language;
 use language::{detect_language, Language};
@@ -11,20 +13,17 @@ use implementations::kotlin;
 const UNSUPPORTED_LANGUAGE: &str = "Unsupported language, make sure to checkout to a valid branch.";
 
 fn main() {
-  let repo = Repository::open_from_env()
-    .expect("Failed to open repository, make sure you're in a project where a repository has been initialized.");
-
-  let language = detect_language(&repo);
+  let language = detect_language();
   println!("# Automatically detected {language}");
+  println!("# Will run checks...");
 
-  // Run checks before bumping the version.
   match language {
     Language::JS => js::run_checks(),
     _ => panic!("{UNSUPPORTED_LANGUAGE}"),
   };
 
   // Would've panicked if the checks failed.
-  println!("# Checks passed successfully");
+  println!("# Checks are all good !");
 
   let version = match language {
     Language::JS => js::get_current_version(),
@@ -59,10 +58,29 @@ fn main() {
   }
 
   let version = version.iter().map(|part| part.to_string()).collect::<Vec<String>>().join(".");
-  println!("# New version is {version}");
 
   match language {
     Language::JS => js::bump_version(&version),
     _ => panic!("{}", UNSUPPORTED_LANGUAGE),
+  }
+
+  let commit_message = format!("chore: release v{version}");
+  let tag_message = format!("Release v{version}");
+  let tag_name = format!("{}-v{version}", language.to_branch_name());
+
+  let commands = vec![
+    vec!["add", "."],
+    vec!["commit", "-m", &commit_message],
+    vec!["tag", "-a", &tag_name, "-m", &tag_message],
+    vec!["push", "origin", language.to_branch_name(), "--tags"],
+  ];
+
+  for command in commands {
+    let output = git(&command).unwrap();
+
+    if !output.status.success() {
+      let error = String::from_utf8_lossy(&output.stdout);
+      panic!("Failed to run git command.\n\n{error}");
+    }
   }
 }
