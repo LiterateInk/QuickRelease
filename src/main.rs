@@ -1,7 +1,16 @@
-use dialoguer::Select;
+use spinners::{Spinner, Spinners};
+use colored::Colorize;
+
+mod version;
 
 mod git;
-use git::git;
+use git::{git, diff};
+
+mod github;
+use github::open_create_release;
+
+mod cli;
+use cli::prompt_new_version;
 
 mod language;
 use language::{detect_language, Language};
@@ -13,60 +22,55 @@ use implementations::kotlin;
 const UNSUPPORTED_LANGUAGE: &str = "Unsupported language, make sure to checkout to a valid branch.";
 
 fn main() {
+  // Show a warning message, just in case.
+  println!("{}\n", "Welcome, please note that this tool is only intended to be used within the LiterateInk organisation, since it expects a specific repository structure and provides no way to configure any feature.".yellow());
+
+  //
+  // Detect the language of the current implementation.
+  // 
+
   let language = detect_language();
-  println!("# Automatically detected {language}");
-  println!("# Will run checks...");
+  println!("Automatically detected {language} implementation");
 
-  match language {
-    Language::JS => js::run_checks(),
-    _ => panic!("{UNSUPPORTED_LANGUAGE}"),
-  };
+  { // Run checks depending on the language.
+    let mut spinner = Spinner::new(Spinners::Dots, "Running checks for this specific implementation...".into());
+  
+    match language {
+      Language::JsTs => js::run_checks(),
+      _ => panic!("{UNSUPPORTED_LANGUAGE}"),
+    };
+  
+    spinner.stop_with_message("Checks are passing, ready to release !".green().to_string());
+  }
 
-  // Would've panicked if the checks failed.
-  println!("# Checks are all good !");
+  //
+  // Read the current version.
+  //
 
-  let version = match language {
-    Language::JS => js::get_current_version(),
+  let old_version = match language {
+    Language::JsTs => js::get_current_version(),
     Language::Kotlin => kotlin::get_current_version(),
     _ => panic!("{UNSUPPORTED_LANGUAGE}"),
   };
 
-  println!("# Current version is {version}");
-  let mut version: Vec<u8> = version.split(".").map(|part| part.parse().unwrap()).collect();
+  //
+  // Bump the version, by asking the user.
+  //
 
-  let selection = Select::new()
-    .with_prompt("=> Let's bump ")
-    .items(&["major", "minor", "patch"])
-    .default(2)
-    .interact()
-    .unwrap();
-
-  match selection {
-    // major
-    0 => {
-      version[0] += 1;
-      version[1..].fill(0);
-    },
-    // minor
-    1 => {
-      version[1] += 1;
-      version[2..].fill(0);
-    },
-    // patch
-    2 => version[2] += 1,
-    _ => panic!("Invalid selection."),
-  }
-
-  let version = version.iter().map(|part| part.to_string()).collect::<Vec<String>>().join(".");
+  let new_version = prompt_new_version(&old_version);
 
   match language {
-    Language::JS => js::bump_version(&version),
-    _ => panic!("{}", UNSUPPORTED_LANGUAGE),
+    Language::JsTs => js::bump_version(&new_version),
+    _ => panic!("{UNSUPPORTED_LANGUAGE}"),
   }
 
-  let commit_message = format!("chore: release v{version}");
-  let tag_message = format!("Release v{version}");
-  let tag_name = format!("{}-v{version}", language.to_branch_name());
+  //
+  // Commit, tag and push to origin.
+  //
+
+  let commit_message = format!("chore: release v{new_version}");
+  let tag_message = format!("Release v{new_version}");
+  let tag_name = format!("{}-v{new_version}", language.to_branch_name());
 
   let commands = vec![
     // NOTE: not very safe to add everything, might be great in the future to
@@ -79,11 +83,22 @@ fn main() {
   ];
 
   for command in commands {
-    let output = git(&command).unwrap();
+    let output = git(&command);
 
     if !output.status.success() {
       let error = String::from_utf8_lossy(&output.stdout);
-      panic!("Failed to run git command.\n\n{error}");
+      panic!("{error}");
     }
   }
+
+  // 
+  // Make a release on GitHub.
+  //
+
+  let release_body = diff(language.to_branch_name(), &old_version, &new_version);
+  let release_name = format!("{} v{new_version}", language.to_branch_name());
+  open_create_release(release_body, tag_name, release_name);
+
+  // Show an exit message, the CLI has finished its job.
+  println!("{}", "Release is now being distributed !".green());
 }
