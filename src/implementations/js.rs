@@ -1,4 +1,4 @@
-use std::{fs::File, io::{BufRead, BufReader, BufWriter, Write}, process::Command};
+use std::{fs::File, io::{Read, Write}, process::Command};
 
 /// Concerning JS/TS implementations, we should only run `pnpm run checks` command.
 /// It'll run `tsc`, `eslint` and sometimes some tests if they're available.
@@ -17,7 +17,7 @@ pub fn run_checks () {
 
 fn open_package_json () -> File {
   File::open("package.json")
-    .expect("File should open read only.")
+    .unwrap()
 }
 
 /// Reads the `package.json` file and parses it as JSON
@@ -38,22 +38,16 @@ pub fn get_current_version () -> String {
 /// We can't use serde for this as it'll mess up the formatting.
 /// Instead, we manually replace the version in the content.
 pub fn bump_version (version: &str) {
-  let file = open_package_json();
-  
-  let reader = BufReader::new(file);
-  let content = reader.lines()
-    .map(|line| line.unwrap() + "\n")
-    .collect::<String>();
+  let mut file = open_package_json();
+
+  let mut content = String::new();
+  file.read_to_string(&mut content).unwrap();
 
   let from = format!("\"version\": \"{}\"", get_current_version());
   let to = format!("\"version\": \"{}\"", version);
 
   let content = content.replace(&from, &to);
 
-  let file = File::create("package.json")
-    .expect("File should open write only.");
-
-  let mut writer = BufWriter::new(file);
-  writer.write_all(content.as_bytes())
-    .expect("File should be written properly.");
+  let mut file = File::create("package.json").unwrap();
+  file.write_all(content.as_bytes()).unwrap();
 }

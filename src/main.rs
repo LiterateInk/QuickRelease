@@ -37,6 +37,7 @@ fn main() {
   
     match language {
       Language::JsTs => js::run_checks(),
+      Language::Kotlin => kotlin::run_checks(),
       _ => panic!("{UNSUPPORTED_LANGUAGE}"),
     };
   
@@ -61,6 +62,7 @@ fn main() {
 
   match language {
     Language::JsTs => js::bump_version(&new_version),
+    Language::Kotlin => kotlin::bump_version(&new_version),
     _ => panic!("{UNSUPPORTED_LANGUAGE}"),
   }
 
