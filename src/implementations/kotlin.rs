@@ -4,21 +4,23 @@ pub fn run_checks () {
   // We don't have any checks to run for Kotlin.
 }
 
-fn open_build_gradle_kts () -> File {
-  File::open("library/build.gradle.kts")
-    .unwrap()
+fn read_build_gradle_kts () -> String {
+  let mut file = File::open("library/build.gradle.kts")
+    .unwrap();
+
+  let mut buffer = String::new();
+  file.read_to_string(&mut buffer).unwrap();
+
+  buffer
 }
 
 /// Reads the `library/build.gradle.kts` file and parses it as KTS
 /// and returns the value of the `version` property as string.
 pub fn get_current_version () -> String {
-  let mut file = open_build_gradle_kts();
-
-  let mut buffer = String::new();
-  file.read_to_string(&mut buffer).expect("file should be proper KTS");
+  let content = read_build_gradle_kts();
 
   // Find the `version = "x.y.z"` line.
-  let version_line = buffer.lines().find(|line| line.contains("version"))
+  let version_line = content.lines().find(|line| line.contains("version"))
     .expect("'build.gradle.kts' is missing 'version' property.");
 
   let version = version_line.split("\"")
@@ -29,10 +31,7 @@ pub fn get_current_version () -> String {
 }
 
 pub fn bump_version (version: &str) {
-  let mut file = open_build_gradle_kts();
-
-  let mut content = String::new();
-  file.read_to_string(&mut content).unwrap();
+  let content = read_build_gradle_kts();
 
   let from = format!("version = \"{}\"", get_current_version());
   let to = format!("version = \"{}\"", version);
