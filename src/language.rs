@@ -23,7 +23,7 @@ impl Language {
       "js" => Language::JsTs,
       "rust" => Language::Rust,
       "kotlin" => Language::Kotlin,
-      _ => panic!("Unknown branch, make sure to checkout to a valid branch."),
+      _ => panic!("unknown branch, make sure to checkout to a valid branch"),
     }
   }
 
@@ -41,6 +41,10 @@ pub fn detect_language () -> Language {
 
   let branch_name = String::from_utf8_lossy(&output.stdout);
   let branch_name = branch_name.trim();
+
+  if branch_name == "main" || branch_name == "index" {
+    panic!("you can't release from the primary branch, please checkout to an implementation branch, such as 'js' or 'kotlin'");
+  }
 
   Language::from_branch_name(branch_name)
 }
