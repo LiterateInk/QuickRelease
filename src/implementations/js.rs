@@ -7,11 +7,11 @@ pub fn run_checks () {
     .arg("run")
     .arg("checks")
     .output()
-    .expect("Failed to run pnpm command, make sure pnpm is installed globally on your machine.");
+    .expect("failed to run pnpm command, make sure pnpm is installed globally on your machine");
 
   if !output.status.success() {
     let error = String::from_utf8_lossy(&output.stdout);
-    panic!("Failed to run `pnpm run checks` command.\n\n{error}");
+    panic!("failed to run `pnpm run checks` command, see the following stack trace:\n\n{error}");
   }
 }
 
@@ -26,7 +26,7 @@ pub fn get_current_version () -> String {
   let file = open_package_json();
   
   let json: serde_json::Value = serde_json::from_reader(file)
-    .expect("File should be proper JSON.");
+    .expect("file should be proper JSON");
   
   let version = json.get("version")
     .expect("'package.json' is missing 'version' property.");

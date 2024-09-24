@@ -8,7 +8,7 @@ pub fn git (args: &[&str]) -> Output {
   Command::new("git")
     .args(args)
     .output()
-    .expect("Failed to run git command, make sure git is installed on your machine.")
+    .expect("failed to run git command, make sure git is installed on your machine")
 }
 
 // get every commit message between the two versions

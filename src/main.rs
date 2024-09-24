@@ -19,7 +19,7 @@ mod implementations;
 use implementations::js;
 use implementations::kotlin;
 
-const UNSUPPORTED_LANGUAGE: &str = "Unsupported language, make sure to checkout to a valid branch.";
+const UNSUPPORTED_LANGUAGE: &str = "unsupported language, make sure to checkout to a valid branch";
 
 fn main() {
   // Show a warning message, just in case.
