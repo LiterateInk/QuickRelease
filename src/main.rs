@@ -2,6 +2,7 @@ use spinners::{Spinner, Spinners};
 use colored::Colorize;
 
 mod version;
+mod utils;
 
 mod git;
 use git::{git, diff};
