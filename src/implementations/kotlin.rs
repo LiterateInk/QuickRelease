@@ -41,11 +41,11 @@ pub fn get_current_version () -> String {
   version.to_string()
 }
 
-fn bump_build_gradle_kts (version: &str) {
+fn bump_build_gradle_kts (old_version: &str, new_version: &str) {
   let content = read_build_gradle_kts();
 
-  let from = format!("version = \"{}\"", get_current_version());
-  let to = format!("version = \"{}\"", version);
+  let from = format!("version = \"{}\"", old_version);
+  let to = format!("version = \"{}\"", new_version);
 
   let content = content.replace(&from, &to);
 
@@ -53,32 +53,32 @@ fn bump_build_gradle_kts (version: &str) {
   file.write_all(content.as_bytes()).unwrap();
 }
 
-fn bump_readme (version: &str) {
+fn bump_readme (old_version: &str, new_version: &str) {
   let content = read_readme();
   let artifact_id = find_between(&content, "<artifactId>", "</artifactId>");
 
-  // implementation 'ink.literate:lib_name:version'
-
   // replace for maven section
-  let from = format!("<version>{}</version>", get_current_version());
-  let to = format!("<version>{}</version>", version);
+  let from = format!("<version>{}</version>", old_version);
+  let to = format!("<version>{}</version>", new_version);
   let content = content.replace(&from, &to);
   
   // replace for gradle (kotlin) section
-  let from = format!("implementation(\"ink.literate:{artifact_id}:{}\")", get_current_version());
-  let to = format!("implementation(\"ink.literate:{artifact_id}:{}\")", version);
+  let from = format!("implementation(\"ink.literate:{artifact_id}:{}\")", old_version);
+  let to = format!("implementation(\"ink.literate:{artifact_id}:{}\")", new_version);
   let content = content.replace(&from, &to);
 
   // replace for gradle section
-  let from = format!("implementation 'ink.literate:{artifact_id}:{}'", get_current_version());
-  let to = format!("implementation 'ink.literate:{artifact_id}:{}'", version);
+  let from = format!("implementation 'ink.literate:{artifact_id}:{}'", old_version);
+  let to = format!("implementation 'ink.literate:{artifact_id}:{}'", new_version);
   let content = content.replace(&from, &to);
 
   let mut file = File::create("README.md").unwrap();
   file.write_all(content.as_bytes()).unwrap();
 }
 
-pub fn bump_version (version: &str) {
-  bump_build_gradle_kts(version);
-  bump_readme(version);
+pub fn bump_version (new_version: &str) {
+  let old_version = get_current_version();
+
+  bump_build_gradle_kts(&old_version, new_version);
+  bump_readme(&old_version, new_version);
 }
